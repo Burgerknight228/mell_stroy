@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mellstroy.game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+            margin-bottom: 10px;
+        }
+        
+        .balance-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .balance {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .bet-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .bet-btn {
+            background: #ffcc00;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .bet-btn:hover {
+            background: #ffdd44;
+            transform: scale(1.1);
+        }
+        
+        .bet-amount {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .slot-machine {
+            background: linear-gradient(145deg, #2c3e50, #34495e);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .reels-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .reel {
+            width: 18%;
+            height: 400px;
+            background: #1a1a2e;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .reel-strip {
+            position: absolute;
+            width: 100%;
+            transition: top 0.1s;
+        }
+        
+        .symbol {
+            width: 100%;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Стили для символов с изображениями */
+        .symbol-img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+        
+        .win-lines {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .line {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .line.active {
+            background: #ffcc00;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .spin-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: linear-gradient(145deg, #ffcc00, #ffaa00);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .spin-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .spin-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .result {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-height: 40px;
+            margin-top: 15px;
+            color: #ffcc00;
+            text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+        }
+        
+        .win-animation {
+            animation: winPulse 0.5s infinite alternate;
+        }
+        
+        @keyframes winPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+        
+        .slow-reel {
+            transition: top 1s !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MELLSTROY.GAME</h1>
+            <p>big sugar mellstroy bembemza 1000</p>
+        </header>
+        
+        <div class="balance-container">
+            <div class="balance">Баланс: <span id="balance">1000</span> ₽</div>
+            <div class="bet-controls">
+                <button class="bet-btn" id="decrease-bet">-</button>
+                <div class="bet-amount">Ставка: <span id="bet-amount">10</span> ₽</div>
+                <button class="bet-btn" id="increase-bet">+</button>
+            </div>
+        </div>
+        
+        <div class="slot-machine">
+            <div class="reels-container">
+                <div class="reel" id="reel1">
+                    <div class="reel-strip" id="strip1"></div>
+                </div>
+                <div class="reel" id="reel2">
+                    <div class="reel-strip" id="strip2"></div>
+                </div>
+                <div class="reel" id="reel3">
+                    <div class="reel-strip" id="strip3"></div>
+                </div>
+                <div class="reel" id="reel4">
+                    <div class="reel-strip" id="strip4"></div>
+                </div>
+                <div class="reel" id="reel5">
+                    <div class="reel-strip" id="strip5"></div>
+                </div>
+            </div>
+            
+            <div class="win-lines">
+                <div class="line active" data-line="1">вкл/выкл</div>
+                <div class="line active" data-line="2">вкл/выкл</div>
+                <div class="line active" data-line="3">вкл/выкл</div>
+                <div class="line active" data-line="4">вкл/выкл</div>
+                <div class="line active" data-line="5">вкл/выкл</div>
+            </div>
+            
+            <div class="controls">
+                <button class="spin-btn" id="spin-btn">КРУТИТЬ</button>
+            </div>
+            
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация переменных
+        let balance = 1000;
+        let currentBet = 10;
+        let isSpinning = false;
+        let activeLines = [1, 2, 3, 4, 5];
+        
+        // Символы для слотов с изображениями
+        // ЗАМЕНИТЕ ССЫЛКИ НА ПУТИ К ВАШИМ ИЗОБРАЖЕНИЯМ
+        const symbols = [
+            { 
+                id: 1, 
+                name: "Вишня", 
+                multiplier: 2, 
+                html: '<img src="https://via.placeholder.com/80x80/FF0000/FFFFFF?text=CHERRY" class="symbol-img" alt="Вишня">' 
+            },
+            { 
+                id: 2, 
+                name: "Лимон", 
+                multiplier: 3, 
+                html: '<img src="https://via.placeholder.com/80x80/FFFF00/000000?text=LEMON" class="symbol-img" alt="Лимон">' 
+            },
+            { 
+                id: 3, 
+                name: "Апельсин", 
+                multiplier: 4, 
+                html: '<img src="https://via.placeholder.com/80x80/FFA500/FFFFFF?text=ORANGE" class="symbol-img" alt="Апельсин">' 
+            },
+            { 
+                id: 4, 
+                name: "Семь", 
+                multiplier: 5, 
+                html: '<img src="https://via.placeholder.com/80x80/FFFFFF/000000?text=7" class="symbol-img" alt="Семь">' 
+            },
+            { 
+                id: 5, 
+                name: "Бар", 
+                multiplier: 10, 
+                html: '<img src="https://via.placeholder.com/80x80/0000FF/FFFFFF?text=BAR" class="symbol-img" alt="Бар">' 
+            },
+            { 
+                id: 6, 
+                name: "Звезда", 
+                multiplier: 15, 
+                html: '<img src="https://via.placeholder.com/80x80/FFFF00/000000?text=STAR" class="symbol-img" alt="Звезда">' 
+            },
+            { 
+                id: 7, 
+                name: "Джекпот", 
+                multiplier: 50, 
+                html: '<img src="https://via.placeholder.com/80x80/FFD700/000000?text=JACKPOT" class="symbol-img" alt="Джекпот">' 
+            }
+        ];
+        
+        // Инициализация игры
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGame();
+            setupEventListeners();
+        });
+        
+        // Инициализация игрового поля
+        function initializeGame() {
+            updateBalanceDisplay();
+            updateBetDisplay();
+            createReelStrips();
+            
+            // Активируем все линии по умолчанию
+            document.querySelectorAll('.line').forEach(line => {
+                line.classList.add('active');
+            });
+        }
+        
+        // Создание полосок с символами для каждого барабана
+        function createReelStrips() {
+            for (let i = 1; i <= 5; i++) {
+                const strip = document.getElementById(`strip${i}`);
+                strip.innerHTML = '';
+                
+                // Добавляем дополнительные символы для эффекта бесконечной прокрутки
+                for (let j = 0; j < 20; j++) {
+                    const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                    const symbolElement = document.createElement('div');
+                    symbolElement.className = 'symbol';
+                    symbolElement.innerHTML = randomSymbol.html;
+                    symbolElement.dataset.symbolId = randomSymbol.id;
+                    strip.appendChild(symbolElement);
+                }
+                
+                // Устанавливаем начальную позицию
+                strip.style.top = '0px';
+            }
+        }
+        
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            document.getElementById('spin-btn').addEventListener('click', startSpin);
+            document.getElementById('increase-bet').addEventListener('click', increaseBet);
+            document.getElementById('decrease-bet').addEventListener('click', decreaseBet);
+            
+            // Обработчики для линий
+            document.querySelectorAll('.line').forEach(line => {
+                line.addEventListener('click', function() {
+                    toggleLine(parseInt(this.dataset.line));
+                });
+            });
+        }
+        
+        // Увеличение ставки
+        function increaseBet() {
+            if (isSpinning) return;
+            
+            const betValues = [10, 20, 50, 100];
+            const currentIndex = betValues.indexOf(currentBet);
+            
+            if (currentIndex < betValues.length - 1) {
+                currentBet = betValues[currentIndex + 1];
+                updateBetDisplay();
+            }
+        }
+        
+        // Уменьшение ставки
+        function decreaseBet() {
+            if (isSpinning) return;
+            
+            const betValues = [10, 20, 50, 100];
+            const currentIndex = betValues.indexOf(currentBet);
+            
+            if (currentIndex > 0) {
+                currentBet = betValues[currentIndex - 1];
+                updateBetDisplay();
+            }
+        }
+        
+        // Переключение активной линии
+        function toggleLine(lineNumber) {
+            if (isSpinning) return;
+            
+            const lineIndex = activeLines.indexOf(lineNumber);
+            const lineElement = document.querySelector(`.line[data-line="${lineNumber}"]`);
+            
+            if (lineIndex === -1) {
+                activeLines.push(lineNumber);
+                lineElement.classList.add('active');
+            } else {
+                activeLines.splice(lineIndex, 1);
+                lineElement.classList.remove('active');
+            }
+        }
+        
+        // Обновление отображения баланса
+        function updateBalanceDisplay() {
+            document.getElementById('balance').textContent = balance;
+        }
+        
+        // Обновление отображения ставки
+        function updateBetDisplay() {
+            document.getElementById('bet-amount').textContent = currentBet;
+        }
+        
+        // Запуск вращения барабанов
+        function startSpin() {
+            if (isSpinning) return;
+            
+            const totalBet = currentBet * activeLines.length;
+            
+            if (balance < totalBet) {
+                showResult("Недостаточно средств!");
+                return;
+            }
+            
+            // Снимаем ставку
+            balance -= totalBet;
+            updateBalanceDisplay();
+            
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+            document.getElementById('result').textContent = '';
+            document.getElementById('result').classList.remove('win-animation');
+            
+            // Определяем, будет ли выигрыш (для демонстрации)
+            const willWin = Math.random() > 0.7;
+            
+            // Запускаем вращение барабанов
+            spinReels(willWin);
+        }
+        
+        // Вращение барабанов
+        function spinReels(willWin) {
+            const reels = [
+                document.getElementById('strip1'),
+                document.getElementById('strip2'),
+                document.getElementById('strip3'),
+                document.getElementById('strip4'),
+                document.getElementById('strip5')
+            ];
+            
+            const spinDuration = 2000; // Длительность вращения в миллисекундах
+            const slowSpinDuration = 4000; // Медленное вращение для последнего барабана
+            
+            // Сбрасываем класс медленного вращения
+            reels.forEach(reel => reel.classList.remove('slow-reel'));
+            
+            // Запускаем вращение для первых 4 барабанов
+            for (let i = 0; i < 4; i++) {
+                spinReel(reels[i], spinDuration, i * 200);
+            }
+            
+            // Запускаем вращение для последнего барабана
+            if (willWin) {
+                // Медленное вращение, если ожидается выигрыш
+                setTimeout(() => {
+                    reels[4].classList.add('slow-reel');
+                    spinReel(reels[4], slowSpinDuration, 0, true, willWin);
+                }, 800);
+            } else {
+                spinReel(reels[4], spinDuration, 800, true, willWin);
+            }
+        }
+        
+        // Вращение одного барабана
+        function spinReel(reel, duration, delay, isLast = false, willWin = false) {
+            setTimeout(() => {
+                const symbolsHeight = 100; // Высота одного символа
+                const totalSymbols = 20; // Количество символов в полоске
+                const finalPosition = -symbolsHeight * (willWin ? 15 : Math.floor(Math.random() * 10 + 5));
+                
+                // Анимация вращения
+                reel.style.transition = `top ${duration}ms cubic-bezier(0.2, 0.8, 0.3, 1)`;
+                reel.style.top = `${finalPosition}px`;
+                
+                // По завершении вращения
+                setTimeout(() => {
+                    if (isLast) {
+                        checkWin();
+                        isSpinning = false;
+                        document.getElementById('spin-btn').disabled = false;
+                    }
+                }, duration);
+            }, delay);
+        }
+        
+        // Проверка выигрышных комбинаций
+        function checkWin() {
+            const reels = [
+                document.getElementById('strip1'),
+                document.getElementById('strip2'),
+                document.getElementById('strip3'),
+                document.getElementById('strip4'),
+                document.getElementById('strip5')
+            ];
+            
+            // Получаем центральные символы каждого барабана
+            const centerSymbols = [];
+            for (let i = 0; i < 5; i++) {
+                const symbols = reels[i].getElementsByClassName('symbol');
+                // Берем 8-й символ как центральный (из 20)
+                centerSymbols.push(parseInt(symbols[8].dataset.symbolId));
+            }
+            
+            let totalWin = 0;
+            
+            // Проверяем выигрышные комбинации для активных линий
+            activeLines.forEach(line => {
+                const lineWin = checkLineWin(line, centerSymbols);
+                totalWin += lineWin;
+            });
+            
+            // Обновляем баланс и показываем результат
+            if (totalWin > 0) {
+                balance += totalWin;
+                updateBalanceDisplay();
+                showResult(`Вы выиграли ${totalWin} ₽!`, true);
+            } else {
+                showResult("Попробуйте еще раз!");
+            }
+        }
+        
+        // Проверка выигрыша на конкретной линии
+        function checkLineWin(line, symbols) {
+            // Определяем паттерны для каждой линии
+            const linePatterns = {
+                1: [2, 2, 2, 2, 2], // Средняя линия
+                2: [1, 1, 1, 1, 1], // Верхняя линия
+                3: [3, 3, 3, 3, 3], // Нижняя линия
+                4: [1, 2, 3, 2, 1], // V-образная линия
+                5: [3, 2, 1, 2, 3]  // Обратная V-образная линия
+            };
+            
+            const pattern = linePatterns[line];
+            const lineSymbols = [];
+            
+            // Получаем символы для линии
+            for (let i = 0; i < 5; i++) {
+                const reel = document.getElementById(`strip${i+1}`);
+                const reelSymbols = reel.getElementsByClassName('symbol');
+                lineSymbols.push(parseInt(reelSymbols[pattern[i]].dataset.symbolId));
+            }
+            
+            // Проверяем комбинации
+            // Для простоты считаем выигрышем 3 и более одинаковых символа подряд
+            let winMultiplier = 0;
+            
+            // Проверяем слева направо
+            let count = 1;
+            for (let i = 1; i < 5; i++) {
+                if (lineSymbols[i] === lineSymbols[0]) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            
+            if (count >= 3) {
+                const symbol = symbols.find(s => s.id === lineSymbols[0]);
+                winMultiplier = symbol.multiplier * Math.pow(2, count - 3);
+            }
+            
+            return currentBet * winMultiplier;
+        }
+        
+        // Показать результат
+        function showResult(message, isWin = false) {
+            const resultElement = document.getElementById('result');
+            resultElement.textContent = message;
+            
+            if (isWin) {
+                resultElement.classList.add('win-animation');
+            }
+        }
+    </script>
+</body>
+</html>
